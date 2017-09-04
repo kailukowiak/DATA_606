@@ -293,8 +293,7 @@ summary(sim_streak)
 ```
 
 
-The longest streak is 8. 
-
+The longest streak is 8 (based on the seed 101)
 
 Compared to the actual data:
 ```{r}
