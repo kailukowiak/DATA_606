@@ -78,6 +78,9 @@ occurrence).
 
 1.  What does a streak length of 1 mean, i.e. how many hits and misses are in a 
     streak of 1? What about a streak length of 0?
+    
+A streak of length 1 means that he made on basket with a miss on either side i.e. M H M.(Presumably he could also have made a hit and then have the game end M H E.)
+A streak of length length zero means he missed: M
 
 The custom function `calc_streak`, which was loaded in with the data, may be 
 used to calculate the lengths of all shooting streaks and then look at the 
@@ -94,6 +97,17 @@ discrete -- counts -- instead of continuous.
 
 2.  Describe the distribution of Kobe's streak lengths from the 2009 NBA finals. 
     What was his typical streak length? How long was his longest streak of baskets?
+```{r}
+library(ggplot2)
+
+qplot(y=kobe_streak, x= 1, geom = "boxplot",)
+```
+```{r}
+summary(kobe_streak)
+```
+
+
+The typical streak length is zero (i.e. he missed most often). The next most common streak that could be called a streak in common parlence is one. The longest streak was 4.
 
 ## Compared to What?
 
@@ -194,6 +208,8 @@ chip that says "head"" is 20%, and "tail" is 80%.
 
 3.  In your simulation of flipping the unfair coin 100 times, how many flips 
     came up heads?
+    
+In our simulation the number of heads and tails respectivly is: `r table(sim_unfair_coin)`.
 
 In a sense, we've shrunken the size of the slip of paper that says "heads", 
 making it less likely to be drawn and we've increased the size of the slip of 
@@ -218,6 +234,7 @@ independent shooter with a shooting percentage of 50% we type,
 ```{r sim-basket, eval=TRUE}
 outcomes <- c("H", "M")
 sim_basket <- sample(outcomes, size = 1, replace = TRUE)
+sim_basket
 ```
 
 To make a valid comparison between Kobe and our simulated independent shooter, 
@@ -227,6 +244,15 @@ we need to align both their shooting percentage and the number of attempted shot
     shooting percentage of 45%? Make this adjustment, then run a simulation to 
     sample 133 shots. Assign the output of this simulation to a new object called
     `sim_basket`.
+
+To change this example to have a shooting percentage of 45% we update the code to:
+```{r}
+set.seed(101)# In order to make reproducable results
+outcomes <- c("H", "M")
+sim_basket <- sample(outcomes, size = 133, replace = TRUE, prob = c(0.45, 0.55))
+table(sim_basket)
+```
+
 
 Note that we've named the new vector `sim_basket`, the same name that we gave to
 the previous vector reflecting a shooting percentage of 50%. In this situation, 
@@ -258,16 +284,45 @@ Using `calc_streak`, compute the streak lengths of `sim_basket`.
 -   Describe the distribution of streak lengths. What is the typical streak 
     length for this simulated independent shooter with a 45% shooting percentage?
     How long is the player's longest streak of baskets in 133 shots?
+```{r}
+sim_streak <- calc_streak(sim_basket)
+qplot(factor(sim_streak))
+```
+```{r}
+summary(sim_streak)
+```
+
+
+The longest streak is 8. 
+
+
+Compared to the actual data:
+```{r}
+qplot(factor(kobe_streak))
+```
+This appears to be the oposite of what the hypothesis that players go on streaks.  
 
 -   If you were to run the simulation of the independent shooter a second time, 
     how would you expect its streak distribution to compare to the distribution 
     from the question above? Exactly the same? Somewhat similar? Totally 
     different? Explain your reasoning.
 
+The streak distrobution would be somewhat similar but not exactly the same (unless we got really lucky). Choseing randomly with replacement will generally achive similar results. The chances of it being exactly the same are given by:
+
+\[P(same)=133!  \]
+This equals `r factorial(133)` which is a mindblowingly big number. 
+The probability for having the same number of streaks would be lower because it would be a combination, but this is too complicated to easily figure out (and would change each time we got a different number of streaks.)
+
+
 -   How does Kobe Bryant's distribution of streak lengths compare to the 
     distribution of streak lengths for the simulated shooter? Using this 
     comparison, do you have evidence that the hot hand model fits Kobe's 
     shooting patterns? Explain.
+
+Currently the max number of baskets in a streak is 7. Depending on the randomness, this will change, but right now it is hard to compare a max streak of 7 to that of 4. As such I would say that they are not that similar, especially since the low end of the simulations had a streak of 4 and a max of 8 (after running the program many times.)
+It should also be noted that I set a seed for `sim_baskets` so that it would remain the same so that my analysis/answers did not come up with controductions.
+
+In fact we might be able to say that the hot hands hypothesis is the opposite, as prior sucess would increase the probability of current/feauture sucess, leading to longer streaks. Instead we see shorter ones. (Again, based off of this random simulation.)
 
 <div id="license">
 This is a product of OpenIntro that is released under a 
