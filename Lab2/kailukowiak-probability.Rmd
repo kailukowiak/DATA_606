@@ -318,7 +318,7 @@ The probability for having the same number of streaks would be lower because it 
     comparison, do you have evidence that the hot hand model fits Kobe's 
     shooting patterns? Explain.
 
-Currently the max number of baskets in a streak is 8. Depending on the randomness, this will change, but right now it is hard to compare a max streak of 7 to that of 4. As such I would say that they are not that similar, especially since the low end of the simulations had a streak of 4 and a max of 8 (after running the program many times.)
+Currently the max number of baskets in a streak is 8  Depending on the randomness, this will change, but right now it is hard to compare a max streak of 7 to that of 4. As such I would say that they are not that similar, especially since the low end of the simulations had a streak of 4 and a max of 8 (after running the program many times.)
 It should also be noted that I set a seed for `sim_baskets` so that it would remain the same so that my analysis/answers did not come up with controductions.
 
 In fact we might be able to say that the hot hands hypothesis is the opposite, as prior sucess would increase the probability of current/feauture sucess, leading to longer streaks. Instead we see shorter ones. (Again, based off of this random simulation.)
