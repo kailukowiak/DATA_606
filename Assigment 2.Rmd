@@ -1,5 +1,5 @@
 ---
-title: "Test of stargazer"
+title: "DATA 606 Assigment 2"
 author: "Kai Lukowiak"
 date: '2017-09-03'
 output: html_document
