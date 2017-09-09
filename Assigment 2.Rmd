@@ -62,7 +62,7 @@ draw.pairwise.venn(area1 = 14.6, area2 = 20.7, cross.area = 4.2,
 
 ** (c) What percent of Americans live below the poverty line and only speak English at home?**
 
-$16.5%$ of Americans live below the poverty line.
+$10.4\%$ of Americans live below the poverty line.
 
 **(d) What percent of Americans live below the poverty line or speak a foreign language at home?**
 
@@ -128,11 +128,15 @@ df["Green", "Blue"]/ df["Green", "Totals"]
 ```
 
 **(d) Does it appear that the eye colors of male respondents and their partners are independent? Explain your reasoning.**
+
+
 They appear to be dependent because 
 $$ 
 P(FemBlue | MaleBlue) \neq P (FemBlue) \\
 \frac{78}{114} \neq \frac{108}{204}
 $$
+
+
 ```{r}
 all.equal(78/114, 108/204)
 a <- 78/114
@@ -154,7 +158,8 @@ kable(df)
 ```
 
 
-** a) Find the probability of drawing a hardcover book first then a paperback fiction book second when drawing without replacement. **
+**a) Find the probability of drawing a hardcover book first then a paperback fiction book second when drawing without replacement.**
+
 
 ```{r}
 findProb <- function(x){
