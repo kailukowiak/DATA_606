@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/305740/ee418f2ef84c4ec3b45bce97d4a92bca
+bundleId: https://api.rpubs.com/api/v1/document/305740/ee418f2ef84c4ec3b45bce97d4a92bca
+url: http://rpubs.com/kaiser/305740
+when: 1504916896.51694
