@@ -288,21 +288,21 @@ sum(fdims$wgt < 60) / length(fdims$wgt)
     generate the plots in R to check.
 
     **a.** The histogram for female biiliac (pelvic) diameter (`bii.di`) belongs
-    to normal probability plot letter ____.
+    to normal probability plot letter __B__.
 ```{r}
 qqnorm(log(fdims$bii.di))
 qqline(log(fdims$bii.di))
 ```
 
     **b.** The histogram for female elbow diameter (`elb.di`) belongs to normal 
-    probability plot letter ____.
+    probability plot letter __C__.
 ```{r}
 qqnorm(log(fdims$elb.di))
 qqline(log(fdims$elb.di))
 ```
 
     **c.** The histogram for general age (`age`) belongs to normal probability 
-    plot letter ____.
+    plot letter __D__.
    
  
 ```{r}
@@ -311,7 +311,7 @@ qqline(log(fdims$age))
 ```
 
     **d.** The histogram for female chest depth (`che.de`) belongs to normal 
-    probability plot letter ____.
+    probability plot letter __A__.
 
 ```{r}
 qqnorm(log(fdims$che.de))
@@ -321,13 +321,38 @@ qqline(log(fdims$che.de))
 -   Note that normal probability plots C and D have a slight stepwise pattern.  
     Why do you think this is the case?
 
+The steps are caused be discrete random variables where the results cannot take continous values. So they clump in a step.
+
 -   As you can see, normal probability plots can be used both to assess 
     normality and visualize skewness.  Make a normal probability plot for female 
     knee diameter (`kne.di`).  Based on this normal probability plot, is this 
     variable left skewed, symmetric, or right skewed?  Use a histogram to confirm 
     your findings.
 
+```{r}
+qplot(fdims$kne.di, binwidth = 1)
+```
 
+
+```{r}
+#install.packages("StMoSim")
+library(StMoSim)
+qqnormSim(fdims$kne.di, nSim = 500)
+
+```
+
+Both these graphs make it look like there is a strong right skew to the data and that it is not normal.
+
+Lets investigate what happens when we take the log.
+
+```{r}
+logKneDim <- log(x = fdims$kne.di)
+qplot(logKneDim)
+
+qqnormSim(logKneDim, nSim = 500)
+```
+
+This did not help take care of the skew which is unfortunate. 
 ![histQQmatch](more/histQQmatch.png)
 
 <div id="license">
