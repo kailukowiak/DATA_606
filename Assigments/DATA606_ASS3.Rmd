@@ -1,0 +1,296 @@
+---
+title: "Question 3.4 for Presentation"
+author: "Kai Lukowiak"
+date: '2017-09-19'
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: spacelab
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library('utils')
+library("RcppParallel")
+library("Rcpp")
+library("StMoSim")
+library("fastGraph")
+
+```
+
+# 3.2 Area under the curve, Part II.
+What percent of a standard normal distribution $$ N(\mu = 0 , \sigma = 1)$$ is found in each region? Be sure to draw a graph.
+
+```{r}
+mean <- 0 
+SD <- 1
+x <- seq(-4, 4, length = 1000)
+y <- dnorm(x, mean, SD)
+```
+
+## a) $Z> -1.13$
+
+```{r}
+shadeDist(-1.13,lower.tail = FALSE,col = c("black", "light blue"))
+```
+
+
+## b) $Z < 0.18$
+
+```{r}
+shadeDist(0.18, ,col = c("black", "light blue"))
+```
+
+## c) $Z>8$
+
+```{r}
+shadeDist(8, ,col = c("black", "light blue"), lower.tail = F)
+```
+
+## d) $|Z| < .5$
+
+```{r}
+shadeDist(c( -0.5, 0.5 ), , lower.tail = FALSE, 0, 1, col = c("black", "light blue"))
+```
+
+
+# 3.4 Triathlon times, Part I.
+In triathlons, it is common for racers to be placed into age
+and gender groups. Friends Leo and Mary both completed the Hermosa Beach Triathlon, where
+Leo competed in the Men, Ages 30 - 34 group while Mary competed in the Women, Ages 25 -
+29 group. Leo completed the race in 1:22:28 (4948 seconds), while Mary completed the race in
+1:31:53 (5513 seconds). Obviously Leo finished faster, but they are curious about how they did
+within their respective groups. Can you help them? Here is some information on the performance
+of their groups:
+
+* The finishing times of the Men, Ages 30 - 34 group has a mean of 4313 seconds with a
+standard deviation of 583 seconds.
+
+* The finishing times of the Women, Ages 25 - 29 group has a mean of 5261 seconds with a
+standard deviation of 807 seconds.
+
+* The distributions of finishing times for both groups are approximately Normal.
+
+
+** Remember: a better performance corresponds to a faster finish. **
+
+
+### (a) Write down the short-hand for these two normal distributions.
+
+
+For men:
+$$ N(\mu =4313, \sigma = 538) $$
+For women:
+$$ N(\mu =5261, \sigma = 807) $$
+
+###(b) What are the Z-scores for Leo’s and Mary’s finishing times? What do these Z-scores tell you?
+
+We have a few options. The Z score can be calculated by:
+$$ z = \frac{x-\bar{x}}{\sigma(X)} $$ 
+
+
+```{r}
+leoTime <- 4948
+menAvg <- 4313
+menStd <- 583 # Phrasing!
+maryTime <- 5513
+womenAvg <- 5261
+womenStd <- 807 
+## Just the variable
+```
+Now for the first calculation:
+```{r}
+leoZ <- (leoTime - menAvg)/menStd
+maryZ <- (maryTime - womenAvg)/womenStd
+
+if (leoZ == maryZ){
+  print("They are, when normalized, equally as fast")
+} else if (leoZ > maryZ){
+  print("Leo is slower once normalized.")
+} else 
+  print("Mary is slower once normalized.")
+```
+
+
+###(c) Did Leo or Mary rank better in their respective groups? Explain your reasoning.
+
+Because the rankings are normally distrobuted Mary did better as a percentage rank than Leo, but since we don't know the number of participants, Leo could have come in 10th and Mary could have come in 100th depending on the number of competitors. Assuming similar number of competitors, Mary would have a higher ranking. 
+
+
+###(d)  What percent of the triathletes did Leo finish faster than in his group?
+
+
+```{r}
+pnorm(leoZ, lower.tail = FALSE) * 100 # Necessary to get the P[X > x].
+```
+
+
+### (e) What percent of the triathletes did Mary finish faster than in her group?
+
+```{r}
+pnorm(maryZ, lower.tail = FALSE) * 100 # Necessary to get the P[X > x].
+```
+
+### (f) If the distributions of finishing times are not nearly normal, would your answers to parts (b) - (e) change? Explain your reasoning.
+
+The answers to part b) would not change because z scores can be calculated even without normalicy. Part c) we might be able to tell who ranked better, given the same number or participants, because if the women had a long right left tail and the men a long right tail, we would know that the women Mary was higher in percentage. We can not say anything WRT d)-f).
+
+I'm a bit unsure of this last part because of the CLT. On slide 10 of [this](http://web.as.uky.edu/statistics/users/pbreheny/580-f10/notes/9.pdf) pdf, Breheny seems to say that percentiles could be aproximated. I am going to stick with what the book said though. 
+
+Here is a really interesting link showing how non normal data can look like: https://www.autodeskresearch.com/publications/samestats
+
+
+
+
+# 3.18 Heights of female college students.
+
+Below are heights of 25 female college students.
+
+```{r}
+height <- c(54, 55, 56, 56, 57, 58, 58, 59, 60, 60, 60, 61, 61, 62, 62, 63, 63, 63, 64, 65, 65, 67, 67, 69, 73)
+summary(height)
+```
+## a) The mean height is 61.52 inches with a standard deviation of 4.58 inches. Use this information to determine if the heights approximately follow the 68-95-99.7% Rule.
+
+```{r}
+heightSD <- sd(height)
+heightMean <- mean(height)
+length(which(height > (heightMean-heightSD) & height < (heightMean +heightSD)))/length(height)
+length(which(height > (heightMean - 2 * heightSD) & height < (heightMean + 2 * heightSD)))/length(height)
+length(which(height > (heightMean - 3 * heightSD) & height < (heightMean + 3 * heightSD)))/length(height)
+```
+
+
+Yes, it follows it very closely, especially considering the small smaple size. 
+
+## b) Do these data appear to follow a normal distribution? Explain your reasoning using the graphs provided below.
+
+```{r}
+qqnorm(height)
+qqline(height)
+
+hist(height, probability = TRUE, ylim = c(0, 0.1))
+x <- 50:73
+y <- dnorm(x = x, mean = heightMean, sd = heightSD)
+lines(x = x, y = y, col = "blue")
+ylim = c(0, 0.09)
+```
+
+These look like there might be a slight right skew, but the n in small.
+
+Let's test it over more iterations:
+
+```{r}
+library(StMoSim)
+qqnormSim(height, nSim = 500)
+```
+
+Compared to 500 other options, it looks pretty normal.
+
+# 3.22 Defective rate.
+A machine that produces a special type of transistor (a component of
+computers) has a 2% defective rate. The production is considered a random process where each
+transistor is independent of the others.
+
+## a) What is the probability that the 10th transistor produced is the first with a defect?
+
+```{r}
+0.98^9 * 0.02
+```
+
+## b) What is the probability that the machine produces no defective transistors in a batch of 100?
+
+
+```{r}
+temp <- .98^100
+print(paste("The chance is ", round(temp * 100, 2), "%"))
+```
+
+## c) On average, how many transistors would you expect to be produced before the first with a defect? What is the standard deviation?
+
+$$ E(d)=0.02*x=1
+\\
+E(d) = \frac{1}{.02} = x
+$$
+```{r}
+1/0.02
+
+```
+
+
+
+## d) Another machine that also produces transistors has a 5% defective rate. 
+where each transistor is produced independent of the others. On average how many 
+transistors would you expect to be produced with this machine before the first with 
+a defect? What is the standard deviation?
+
+Using the same equation as above:
+
+```{r}
+1/0.05
+```
+
+
+## e) Based on your answers to parts (c) and (d), how does increasing the probability of an event affect the mean and standard deviation of the wait time until success?
+
+Increasing the probability decreases the weight time and SD because the event happens sooner and is more tightly grouped. 
+
+# 3.38 Male children.
+While it is often assumed that the probabilities of having a boy or a girl
+are the same, the actual probability of having a boy is slightly higher at 0.51. Suppose a couple plans to have 3 kids.
+
+## a) Use the binomial model to calculate the probability that two of them will be boys.
+
+```{r}
+dbinom(2,3,0.51)
+```
+
+## b) Write out all possible orderings of 3 children, 2 of whom are boys. Use these scenarios to calculate the same probability from part (a) but using the addition rule for disjoint outcomes. Confirm that your answers from parts (a) and (b) match.
+
+The results can be: 
+{B,B,G}, {B,G,B}, {G,B,B}
+
+Thefore:
+
+```{r}
+.51*.51* .49 + .51*.49*.51+.49*.51*.51
+```
+Which is the same as the above value
+
+
+
+# 3.42 Serving in volleyball.
+A not-so-skilled volleyball player has a 15% chance of making the serve, which involves
+hitting the ball so it passes over the net on a trajectory such that it will land
+in the opposing team’s court. Suppose that her serves are independent of each other.
+
+## (a) What is the probability that on the 10th try she will make her 3rd successful serve?
+
+$$P= \frac{n!}{r!(n-r)!} $$
+
+```{r}
+
+n <- 10   
+k <- 3     
+p <- 0.15
+
+tenth <- factorial(n - 1) / (factorial(k-1) * (factorial(n - k))) * p^k * (1-p)^(n-k)
+tenth
+
+```
+
+
+## b) Suppose she has made two successful serves in nine attempts. What is the probability that her 10th serve will be successful?
+
+the prior numbers don't matter, so the answer is the prbability of 15%.
+
+## c) Even though parts (a) and (b) discuss the same scenario, the probabilities you calculated should be different. Can you explain the reason for this discrepancy?
+
+It's farily intuative but if you are starting off at zero success it's harder to get three than if you're starting at two success and only trying to get one more. 
+
+
+
