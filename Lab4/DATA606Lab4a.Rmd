@@ -25,7 +25,10 @@ interest.  In this lab we would like to learn about these home sales by taking
 smaller samples from the full population.  Let's load the data.
 
 ```{r load-data, eval=TRUE}
-load("more/ames.RData")
+library(openintro)
+download.file("http://www.openintro.org/stat/data/ames.RData", destfile = "ames.RData")
+load("ames.RData")
+load("ames.RData")
 ```
 
 We see that there are quite a few variables in the data set, enough to do a 
@@ -49,6 +52,8 @@ hist(area)
 ```
 
 1.  Describe this population distribution.
+
+The population has a right skew and a mean of around 1500.
 
 ## The unknown sampling distribution
 
