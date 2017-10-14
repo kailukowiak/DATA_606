@@ -67,6 +67,7 @@ If we were interested in estimating the mean living area in Ames based on a
 sample, we can use the following command to survey the population.
 
 ```{r samp1, eval=TRUE}
+set.seed(101)
 samp1 <- sample(area, 50)
 ```
 
@@ -78,6 +79,14 @@ home sales.
 
 2.  Describe the distribution of this sample. How does it compare to the 
     distribution of the population?
+
+```{r}
+summary(area)
+summary(samp1)
+hist(samp1)
+```
+
+It looks less normal but also has less of a skew because there are fewer data points for the long right tail. 
 
 If we're interested in estimating the average living area in homes in Ames 
 using the sample, our best single guess is the sample mean.
@@ -96,6 +105,13 @@ population.
     mean of `samp2` compare with the mean of `samp1`?  Suppose we took two 
     more samples, one of size 100 and one of size 1000. Which would you think 
     would provide a more accurate estimate of the population mean?
+
+```{r}
+set.seed(500)
+samp2 <- sample(area, 50)
+mean(samp2)
+```
+The sample is larger, but within reason.
 
 Not surprisingly, every time we take another random sample, we get a different 
 sample mean.  It's useful to get a sense of just how much variability we 
@@ -132,6 +148,20 @@ the mean of each sample, and store each result in a vector called
     distribution, and be sure to specifically note its center.  Would you 
     expect the distribution to change if we instead collected 50,000 sample 
     means?
+
+There are 5000 elements in it. The sampeling distrobution is normal. It would become more normal but as we can see:
+
+```{r}
+sample_means500 <- rep(NA, 50000)
+
+for(i in 1:50000){
+   samp <- sample(area, 50)
+   sample_means500[i] <- mean(samp)
+   }
+
+hist(sample_means500, breaks = 25)
+```
+
 
 ## Interlude: The `for` loop
 
@@ -209,6 +239,19 @@ initialized at the outset.
     are there in this object called `sample_means_small`? What does each 
     element represent?
 
+```{r}
+sample_means_small <- rep(NA,100)
+
+for(i in 1:100){
+  
+  sample_means_small[i] <- mean(sample(area,50))
+  
+}
+
+sample_means_small
+```
+
+
 ## Sample size and the sampling distribution
 
 Mechanics aside, let's return to the reason we used a `for` loop: to compute a 
@@ -272,6 +315,8 @@ plotted with the same limits on the x-axis.
 
 6.  When the sample size is larger, what happens to the center?  What about the spread?
 
+When the sample gets larger, the variance decreases (spread) and the hight increases.
+
 * * *
 ## On your own
 
@@ -281,6 +326,13 @@ Ames.  Now you'll try to estimate the mean home price.
 -   Take a random sample of size 50 from `price`. Using this sample, what is 
     your best point estimate of the population mean?
 
+```{r}
+mean(sample(price,50))
+
+```
+
+I don't know if I would call this the best though.
+
 -   Since you have access to the population, simulate the sampling 
     distribution for $\bar{x}_{price}$ by taking 5000 samples from the 
     population of size 50 and computing 5000 sample means.  Store these means 
@@ -289,16 +341,46 @@ Ames.  Now you'll try to estimate the mean home price.
     what would you guess the mean home price of the population to be? Finally, 
     calculate and report the population mean.
 
+```{r}
+sample_price_means_50 <- rep(NA,5000)
+
+for(i in 1:5000) {
+  sample_price_means_50[i] <- mean(sample(price,50))
+}
+par(mfrow = c(1, 1))
+hist(sample_price_means_50)
+```
+
+
 -   Change your sample size from 50 to 150, then compute the sampling 
     distribution using the same method as above, and store these means in a 
     new vector called `sample_means150`. Describe the shape of this sampling 
     distribution, and compare it to the sampling distribution for a sample 
     size of 50.  Based on this sampling distribution, what would you guess to 
     be the mean sale price of homes in Ames?
+    
+    
+```{r}
+sample_price_means_150 <- rep(NA,5000)
+
+for(i in 1:5000) {
+  sample_price_means_150[i] <- mean(sample(price,150))
+}
+par(mfrow = c(1, 1))
+hist(sample_price_means_50)
+hist(sample_price_means_150)
+```
+```{r}
+mean(sample_price_means_150)
+mean(sample_price_means_50)
+```
+The means are very similar. 
 
 -   Of the sampling distributions from 2 and 3, which has a smaller spread?  If
     we're concerned with making estimates that are more often close to the 
     true value, would we prefer a distribution with a large or small spread?
+
+150 has a smaller spread because as n increases the spread decreases. 
 
 <div id="license">
 This is a product of OpenIntro that is released under a [Creative Commons 
