@@ -1,7 +1,5 @@
 ---
-title: 'DATA 606 Lab 4a'
-author: "Kai Lukowiak"
-date: '2017-10-11'
+title: 'Foundations for statistical inference - Sampling distributions'
 output:
   html_document:
     css: ./lab.css
@@ -25,10 +23,12 @@ interest.  In this lab we would like to learn about these home sales by taking
 smaller samples from the full population.  Let's load the data.
 
 ```{r load-data, eval=TRUE}
+
 library(openintro)
 download.file("http://www.openintro.org/stat/data/ames.RData", destfile = "ames.RData")
 load("ames.RData")
 load("ames.RData")
+
 ```
 
 We see that there are quite a few variables in the data set, enough to do a 
@@ -54,6 +54,7 @@ hist(area)
 1.  Describe this population distribution.
 
 The population has a right skew and a mean of around 1500.
+
 
 ## The unknown sampling distribution
 
@@ -303,3 +304,4 @@ Ames.  Now you'll try to estimate the mean home price.
 This is a product of OpenIntro that is released under a [Creative Commons 
 Attribution-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-sa/3.0).
 This lab was written for OpenIntro by Andrew Bray and Mine &Ccedil;etinkaya-Rundel.
+</div>
