@@ -1,0 +1,202 @@
+---
+title: "Webscraping to Find Key DS Skills"
+author: "Kai Lukowiak"
+date: '2017-10-28'
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Loading packages
+```{r message=FALSE}
+library(dplyr)
+
+```
+
+
+
+
+# Answer Questions: 
+5.6, 5.14, 5.20, 5.32, 5.48
+
+
+
+## Working backwards, Part II.
+
+A 90% confidence interval for a population mean is (65, 77). The population distribution is approximately normal and the population standard deviation is unknown. This confidence interval is based on a simple random sample of 25 observations. Calculate the sample mean, the margin of error, and the sample standard deviation.
+
+
+```{r}
+n <- 25
+me <- (77-65)/2
+xbar <- me+ 65
+tVal <- qt(.95, n-1)
+# me = t*sd/sqrt(n)
+sd <- sqrt(n)*me/tVal
+
+```
+
+The sample mean is ```r xbar```, the sample margin of error is ```r me```, and the sample standard deviation is ```r round(sd, 2)```
+
+
+
+## 5.20 High School and Beyond, Part I.
+
+### (a) Is there a clear di↵erence in the average reading and writing scores?
+No, there does not appear to be a significant difference because the (read-write) histogram was normally distributed and grouped around zero. 
+
+### (b) Are the reading and writing scores of each student independent of each other?
+
+I would guess that the two samples are not independent because one students reading would impact the same students writing. We can assume that they are independent between students. 
+
+### (c) Create hypotheses appropriate for the following research question: is there an evident difference in the average scores of students in the reading and writing exam?
+
+$$H_o:\mu_r-\mu_w = 0 $$
+$$H_a:\mu_r-\mu_w \ne 0 $$
+
+### (d) Check the conditions required to complete this test.
+
+The conditions required to perform the hypothesis test are independence and normalcy. 
+
+1. Independence
+  * Because they are paired they are not independent.
+  
+2. Normally distributed
+  * They do look normally distributed.
+It is still possible to do a t test on these.
+
+
+### (e) The average observed difference in scores is $\bar x_{read} − \bar x_{write} = −0.545$ , and the standard deviation of the differences is 8.887 points. Do these data provide convincing evidence of a difference between the average scores on the two exams?
+
+```{r}
+sd <- 8.887
+xbar <- 0.545
+tVal <- xbar/sd
+n <- 200
+p <- pt(tVal, n-1)
+```
+
+Since the p value for the test is only `r p` we cannot reject the null hypothesis that the means are different.
+
+### (f) What type of error might we have made? Explain what the error means in the context of the application.
+
+There are two types of error:
+
+1. Type 1 error:
+   *Reject the null when the true value is not actually different.
+2. Type 2 error:
+  *Do not reject the null when there is a difference between the means.
+
+Since we did not reject the null, we might be suffering from Type 2 error. 
+
+
+### (g) Based on the results of this hypothesis test, would you expect a confidence interval for the average difference between the reading and writing scores to include 0? Explain your reasoning.
+
+Yes, because we tested whethere or not the means were different from each other, to reject the null would require the 95% CI to not include zero, because we did not reject the null, we know that the 95% CI does include zero. 
+
+
+
+## 5.32 Fuel efficiency of manual and automatic cars, Part I.
+Each year the US Environmental
+Protection Agency (EPA) releases fuel economy data on cars manufactured in that year.
+Below are summary statistics on fuel efficiency (in miles/gallon) from random samples of cars with
+manual and automatic transmissions manufactured in 2012. Do these data provide strong evidence
+of a difference between the average fuel efficiency of cars with manual and automatic transmissions
+in terms of their average city mileage? Assume that conditions for inference are satisfied.
+
+Loading the data:
+
+
+
+```{r}
+manualMean <- 19.85
+manualSD <- 4.51
+autoMean <- 16.12
+autoSD <- 3.58
+n <- 26
+```
+
+Degrees of freedom:
+
+```{r}
+degF <- (autoSD**2/n + manualSD**2/n)**2 / ((autoSD**2/n)**2/(n-1) + (manualSD**2/n)**2/(n-1))
+```
+
+
+
+The ttest:
+
+```{r}
+se <- sqrt(autoSD**2/n + manualSD**2/n)
+
+t = (autoMean - manualMean)/se
+pt(t, degF )
+
+```
+
+The p value that manual is far less than the p > 0.05 so we can reject the null that they are the same.
+
+
+## 5.48 Work hours and education.
+
+The General Social Survey collects data on demographics,
+education, and work, among many other characteristics of US residents.47 Using ANOVA, we can
+consider educational attainment levels for all 1,172 respondents at once. Below are the distributions
+of hours worked by educational attainment and relevant summary statistics that will be helpful in
+carrying out this analysis.
+
+
+
+###(a) Write hypotheses for evaluating whether the average number of hours worked varies across the five groups.
+
+$$H_O: \mu_l=\mu_{hs}=\mu_{Jr Col}=\mu_{barhalors}=\mu_{grad} $$
+$$H_a: \exists \mu_i \ne \mu_j $$
+
+
+### (b) Check conditions and describe any assumptions you must make to proceed with the test.
+
+1. The observations are indipendant within and between groups.
+  * This is most likely true.
+2. The data within groups is normal.
+  * This is also most likely true because we can see some individual points on the bar charts that don't look clumped.
+3. The cross group variance is relitively equal.
+  * This also looks like it is satisfied. 
+
+### (c) Below is part of the output associated with this test. Fill in the empty cells.
+
+![Fill in the balanks](/Users/kailukowiak/OneDrive - CUNY School of Professional Studies/DATA_606_Local/Assigments/Week5/Data606ScrenShot.png)
+
+
+
+```{r}
+xbar <- c(38.67, 39.6, 41.39, 42.55, 40.85)
+sd <- c(15.81, 14.97, 18.1, 13.62, 15.51)
+n <- c(121, 546, 97, 253, 155)
+df <- data.frame (xbar, sd, n)
+df %>% knitr::kable()
+```
+
+```{r}
+n <- sum(df$n)
+k <- nrow(df)
+degFre <- n - k - 1
+res <- n - k
+
+fStat <- qf(1 - 0.0682, degFre, res)
+
+MSE <- 501.54/fStat
+
+SSD <- degFre * 501.54
+SSE <- 267382 # Ambiguous naming. 
+SST <- SSD + SSE
+```
+
+### (d) What is the conclusion of the test?
+
+Since ```r p``` is > 0.05, we fail to reject that any of the means is different. 
