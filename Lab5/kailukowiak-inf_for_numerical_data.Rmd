@@ -194,10 +194,18 @@ inference(y = nc$gained, x = nc$mature, est = "mean", type = "ci", null = 0,
 mothers. Use a method of your choice, and explain how your method works.
 
 ```{r}
-summary(nc$mage)
+nc %>% select(mage, mature) %>% 
+  filter( mature == 'younger mom') %>% 
+  summarise(maxY = max(mage))
+
+nc %>% select(mage, mature) %>% 
+  filter( mature == 'mature mom') %>% 
+  summarise(minO = min(mage))
+
 ```
-
-
+Based on the two cutoffs,
+ we can surmise that the cutoff is 35 years old. 
+ 
 -   Pick a pair of numerical and categorical variables and come up with a 
 research question evaluating the relationship between these variables. 
 Formulate the question in a way that it can be answered using a hypothesis test
@@ -205,6 +213,13 @@ and/or a confidence interval. Answer your question using the `inference`
 function, report the statistical results, and also provide an explanation in 
 plain language.
 
+Does being older effect birth wate?
+
+```{r}
+inference(y = nc$mage, x = nc$lowbirthweight, est = 'mean', type = 'ci', null = 0, alternative = 'twosided', method = 'theoretical')
+```
+
+There appears to be almost no difference between the two. 
 
 
 <div id="license">
