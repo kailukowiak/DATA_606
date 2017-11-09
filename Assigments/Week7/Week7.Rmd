@@ -1,0 +1,191 @@
+---
+title: "Week 7"
+author: "Kai Lukowiak"
+date: '2017-11-09'
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Loading packages
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(knitr)
+
+```
+
+
+
+
+# Answer Questions: 
+7.24, 7.26, 7.30, 7.40
+
+## 7.24 Nutrition at Starbucks, Part I.
+
+The scatter plot below shows the relationship between
+the number of calories and amount of carbohydrates (in grams) Starbucks food menu items contain.
+21 Since Starbucks only lists the number of calories on the display items, we are interested in
+predicting the amount of carbs a menu item has based on its calorie content.
+
+### (a) Describe the relationship between number of calories and amount of carbohydrates (in grams) that Starbucks food menu items contain.
+
+In general the more calories a drink has, the more carbs it has as well.
+
+This relationship is linear, with normally distributed errors. 
+
+### (b) In this scenario, what are the explanatory and response variables?
+
+The explanatory variable is the number of carbs and the response variable is the caloric content.
+
+### (c) Why might we want to fit a regression line to these data?
+
+To understand the linear trend that is the average ratio of carbs to calories.
+
+### (d) Do these data meet the conditions required for fitting a least squares line?
+
+* **Linearity:** The trend is linear but there is significant heteroskedasticity.
+
+* **Normal Residiuals:** No, since the variance increases with carbs, so do the residuals (heteroskedasticity).
+
+* **Constant Variability:** Definitely not.
+
+* **Independent observations:** It would be very weird for Starbucks to make their beverages not independent of each other, although one could argue that they might want similar or dissimilar drinks which could impact the observations.
+
+## 7.26 Body measurements, Part III.
+
+Exercise 7.15 introduces data on shoulder girth and
+height of a group of individuals. The mean shoulder girth is 107.20 cm with a standard deviation
+of 10.37 cm. The mean height is 171.14 cm with a standard deviation of 9.41 cm. The correlation
+between height and shoulder girth is 0.67.
+
+### (a) Write the equation of the regression line for predicting height.
+
+```{r}
+sg <- 107.2
+sgsd <- 10.37
+h <- 171.14
+hsd <- 9.41
+correl <- 0.67
+b1 <- hsd/sgsd * correl
+b0 <- h - b1 * sg
+b1
+b0
+```
+
+\[
+\hat{y}= 105.97 +  \cdot 0.61
+\]
+
+### (b) Interpret the slope and the intercept in this context.
+
+The intercept of 105.97 means that if a persons shoulder girth was zero, they would still have a hight of 105.97. This is obviously implausible. For every cm of girth a person gains, thir hight increases by 0.61.
+
+Both these results should only be interpreted within the observed range of hights.
+
+### (c) Calculate R2 of the regression line for predicting height from shoulder girth, and interpret it in the context of the application.
+
+```{r}
+rsq <- correl^2
+```
+
+The $R^2$ of the regression is `r rsq`. This means that the the variantion in hight explains `r rsq *100`% of the variation in shoulder width.
+
+### (d) A randomly selected student from your class has a shoulder girth of 100 cm. Predict the height of this student using the model.
+
+```{r}
+pred <- b0 + b1 * 100
+```
+
+The predicted hight of a person with 100 cm girth would be `r pred`.
+
+### (e) The student from part (d) is 160 cm tall. Calculate the residual, and explain what this residual means.
+
+```{r}
+res <- pred - 160
+```
+
+The residual for the estimation is `r res`.
+
+### (f) A one year old has a shoulder girth of 56 cm. Would it be appropriate to use this linear model to predict the height of this child?
+
+No, tottaly not. Because we only have samples within a certain range, it is only approrpiate to make intropolations, not extrapolations.
+
+### 7.30 Cats, Part I.
+
+The following regression output is for predicting the heart weight (in g) of cats
+from their body weight (in kg). The coefficients are estimated using a dataset of 144 domestic cats.
+
+```{r}
+df <- data.frame('Var' = c('Intercept', 'bodyWeight'),
+                 "Estimate" = c(-0.357,4.034), 
+                 "StdError" =  c(0.692, 0.250), 
+                 "t_val" = c(-0.515, 16.119), 
+                 'p_val' =  c(0.607, 0))
+
+kable(df)
+```
+
+### (a) Write out the linear model.
+
+\[
+\widehat{Heart Weight} =\underset{(0.692)}{-0.357} \cdot \underset{(0.250)}{4.034} \cdot bodyWeight
+\]
+
+### (b) Interpret the intercept.
+
+The intercept is the estimated heart weight of a cat with zero body weight. Obviously this cannot be interpreted outside the range of observations.
+
+### (c) Interpret the slope.
+
+Within the range of values, an increase in body weight of 1 leades to an increase of heart size of 4.034.
+
+### (d) Interpret $R^2$
+
+The $R^2$ of 64.66% means that 64.66% of the variance of body weight explains heart size.
+
+### (e) Calculate the correlation coefficient.
+
+```{r}
+cf <- sqrt(64.66)
+```
+
+The correleation foefficent is `r cf`.
+
+### 7.40 Rate my professor.
+
+Many college courses conclude by giving students the opportunity
+to evaluate the course and the instructor anonymously. However, the use of these student evaluations
+as an indicator of course quality and teaching e↵ectiveness is often criticized because these
+measures may reflect the influence of non-teaching related characteristics, such as the physical appearance
+of the instructor. Researchers at University of Texas, Austin collected data on teaching
+evaluation score (higher score means better) and standardized beauty score (a score of 0 means
+average, negative score means below average, and a positive score means above average) for a
+sample of 463 professors.24 The scatterplot below shows the relationship between these variables,
+and also provided is a regression output for predicting teaching evaluation score from beauty score.
+
+### (a) Given that the average standardized beauty score is -0.0883 and average teaching evaluation score is 3.9983, calculate the slope. Alternatively, the slope may be computed using just the information provided in the model summary table.
+
+```{r}
+b1 <- (3.9983 - 4.010)/(-0.0883)
+```
+
+The slope of $B_1$ is `r b1`. 
+
+### (b) Do these data provide convincing evidence that the slope of the relationship between teaching evaluation and beauty is positive? Explain your reasoning.
+
+From just looking at the scatter plot, I would have said no, however, since the slope of $B_1$ is `r b1` and the p value of the slop is 0, I would say that there is a positive correlation. 
+
+### (c) List the conditions required for linear regression and check if each one is satisfied for this model based on the following diagnostic plots.
+
+1. **Linearity:** There does not appear to be a non linear trend in the data. Although, there also doesn't appear to be much of a trend at all except for very attractive teachers not receiving the lowest scores.
+
+2. **Nearly Normal Residuals:** There does not seem to be a trend in the residual plot.  
+
+3. **Constant Variability:** Given that the plot of Order of Collection and Residuals appears to have zero pattern, we can say that the variability is constant. 
+
