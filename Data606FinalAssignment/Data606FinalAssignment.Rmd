@@ -2,29 +2,295 @@
 title: "Data 606 Final Assignment"
 author: "Kai Lukowiak"
 date: '2017-11-25'
-output: html_document
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# Final Assignment:
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## 1. Introduction: 
 
-```{r cars}
-summary(cars)
+What is your research question? Why do you care? Why should others care?
+
+*Can baisic machine learning techniques outperform simple logistic regression?*
+
+Can we better predict the probability of an insurance user filing a claim? This is an interesting question because it will allow better price discrimination to insurance users. This means that risky and less risky individuals can be charged different prices. 
+
+DATA 606 is a statistics course. While statistics means many things, inference is a very important objective for many statistical analyses is statistical inference. This difference from the objective of the company. The company just wants to understand **that** a model predicts claims. I want to understand if the interpretability of a logistic regression can make compensate for possible poorer performance. 
+
+## Loading Packages:
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(data.table)
+library(ggplot2)
+library(ggthemes)
+library(tibble)
+library(knitr)
+library(corrr)
+library(corrplot)
+library(caret)
+library(xgboost)
+library(MLmetrics)
+library(ROCR)
+library(lattice)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r  loading, cache=TRUE,  message=FALSE, warning=FALSE}
+test <- as.tibble(fread("/Users/kailukowiak/Data606_Proposal/test.csv", na.strings = c("-1","-1.0")))
+train <- as.tibble(fread("/Users/kailukowiak/Data606_Proposal/train.csv", na.strings = c("-1","-1.0")))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+glimpse(train)
+```
+
+We must change categories to factors.
+
+```{r}
+train <-  train %>% 
+  mutate_at(vars(contains('_cat')), .funs = as.factor) #Sets all categories to factor. 
+train <- model.matrix(~ . -1, data = train)
+
+```
+
+## 2. Data: 
+
+Write about the data from your proposal in text form. Address the following points:
+
+* Data collection: Describe how the data were collected.
+
+The  data was easily collected from two zip files from kaggle. The website can be seen [here](https://www.kaggle.com/c/porto-seguro-safe-driver-prediction/data).
+
+* Cases: What are the cases? (Remember: case = units of observation or units of experiment)
+
+The cases are individual people who bought insurance and either did, or did not file a claim.
+
+* Variables: What are the two variables you will be studying? State the type of each variable.
+
+The target variable is a categorical variable with two states. 
+$$\text{target} \in 0,1$$
+I'm going to use all other variables that are both dummy variables and continuous variables. 
+
+* Type of study: What is the type of study, observational or an experiment? Explain how you’ve arrived at your conclusion using information on the sampling and/or experimental design.
+
+Since there is no control group or attempts to use natural variance such as IV or regression discontinuity we can say that this is an observational study that is trying to predict, based on certain characteristics, which people are most likely to file an insurance claim.
+
+* Scope of inference - generalization: Identify the population of interest, and whether the findings from this analysis can be generalized to that population, or, if not, a subsection of that population. Explain why or why not. Also discuss any potential sources of bias that might prevent generalization.
+
+The population of interest is people in Brazil who need auto insurance. There may be some room for the results of this to be interpreted outside of the population of interest, however, since there is no attempt to control or tackle bias that may lie outside of the population of interest results should be only interpreted with that in mind.
+
+Potential bias could easily occur from an omitted variable (OVB). OVB could stem from any variable correlates with filing a claim and the probability that an individual would buy insurance. Alternatively, there could be selection bias as well. This would bias results if conditions led different people to purchase insurance. Also, given the probable difference in driving conditions in Brazil it will be difficult to translate findings outside of similar countries. 
+
+* Scope of inference - causality: Can these data be used to establish causal links between the variables of interest? 
+
+No, it would be difficult to draw a causal conclusion between age and claim filing because the data is not an experiment. 
+
+* Explain why or why not.
+
+Causality looks at what would happen to the counter factual. This study is not looking into the counter factual but instead it is trying to predict which consumers of insurance will make a claim. 
+
+*Ceteris paribus* would an individual have a different outcome if they were a different age? This is an impossible question to answer since age makes up who a person is and (presumably) how they drive. 
+
+Further, things like multicolinierity will have less negative effects on a classification problem than on a causal inference problem. For example, if age and car type are highly correlated, there could be errors with attribution. For example, young people get in more car crashes and also buy used sports cars more. If this correlation is very high, the probability of a claim that is attributed mostly to age might be split between age and used sports car. Such an example would not matter as much in the classification setting because most people new predictions were being made on would follow the same correlation and so the two variables would in effect be summed up, leading to more accurate classification than inference. 
+
+## 3. Exploratory data analysis:
+Perform relevant descriptive statistics, including summary statistics and visualization of the data. Also address what the exploratory data analysis suggests about your research question.
+
+
+Unsurprisingly, there are many more no-claims than claims. 
+
+```{r}
+train <- data.frame(train)
+train %>% 
+  select(target) %>% 
+  group_by(target) %>% 
+  summarise(ratio = n() / nrow(train) * 100) %>% 
+  ggplot( aes(x = target, y = ratio))+
+  geom_bar(stat = 'identity', fill = 'light blue') +
+  ggtitle("Count of Claims vs No Claims") +
+  xlab('Claim or No Claim') + ylab('Ratio (%)') + 
+  geom_text(aes(label=round(ratio, 2)), position=position_dodge(width=0.9), vjust=-0.25)
+```
+
+
+This means we will have to normalize the data to make the number of claims equal to the number of no claims. (At least for some classification techniques).
+
+```{r}
+test = data.table(test)
+naVals <- test %>%  
+  select(which(colMeans(is.na(.)) > 0)) %>% 
+  summarise_all(funs(sum(is.na(.))/n())) %>%
+  gather(key = "Variable", value = "missingPercent")
+```
+
+
+```{r}
+ggplot(naVals, aes(x = reorder( Variable, missingPercent), y = missingPercent)) +
+  geom_bar(stat = "identity", fill = 'light blue') +
+  ylim(0,1) +
+  ggtitle("Percentage of Non- Missing Values") +
+  coord_flip() 
+```
+
+We can see that most of ```ps_car_03_cat``` and ```ps_car_05_cat``` is missing. Other than that, most variables contain few if any NAs.
+
+```{r}
+corrDF <- train %>% 
+  correlate() %>% 
+  focus(target)
+```
+
+```{r corplotTemp, fig.height=9, fig.width=7}
+ggplot(corrDF, aes(x =reorder(rowname, abs(target)), y = target)) + 
+  geom_bar(stat = 'identity', fill = 'light blue') +
+  coord_flip()+
+  ylab('Variable')+
+  xlab('Correlation with Target')+
+  ggtitle('Correlation of the Dependant Variable with all Other Variables')
+```
+
+
+We can see from this graph, that there is little correlation. 
+
+
+## Inference:
+If your data fails some conditions and you can’t use a theoretical method, then you should use simulation. If you can use both methods, then you should use both methods. It is your responsibility to figure out the appropriate methodology.
+
+While we can make some inference from the logistic regression (although we must be careful to not imply causality, we cannot make statistical inference from the xgboost algorithm.)
+
+### Train test split
+```{r traintest, message=FALSE, warning=FALSE, error=FALSE}
+trainIndex <- createDataPartition(train$target, p = 0.7, list = F, times = 1)
+trainTrain <- train[trainIndex,]
+trainTest <- train[-trainIndex,]
+```
+
+```{r}
+mod <- glm(formula = target ~ ., family = binomial(link = "logit"), 
+    data = trainTrain)
+```
+
+```{r anova}
+mod
+```
+
+
+```{r}
+p <- predict(mod, newdata = trainTest[, -which(names(trainTest) == "target")], type="response")
+pr <- prediction(p, trainTest$target)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+
+auc
+```
+
+That AUC doesn't look very good.
+
+Let's see if we can improve that with a better model.
+
+### XGBoost:
+This is a great package. 
+
+```{r}
+
+# xgb_normalizedgini <- function(preds, dtrain){
+#   actual <- getinfo(dtrain, "label")
+#   score <- NormalizedGini(preds,actual)
+#   return(list(metric = "NormalizedGini", value = score))
+# }
+# 
+# param <- list(booster="gbtree",
+#               objective="binary:logistic",
+#               eta = 0.02,
+#               gamma = 1,
+#               max_depth = 6,
+#               min_child_weight = 1,
+#               subsample = 0.8,
+#               colsample_bytree = 0.8
+# )
+
+
+set.seed(101)
+param = list(
+  objective ="binary:logistic", # Because only two categories
+  eval_metric = "auc", # from competiton
+  subsample = 0.8,
+  gamma = 1,
+  colsample_bytree = 0.8,
+  max_depth = 6,
+  min_child_weight = 1,
+  tree_method = "auto",
+  eta  = 0.02,
+  colsample_bytree = 0.8,
+  nthreads = 8
+)
+
+x_train <- xgb.DMatrix(
+    as.matrix(trainTrain[,-2]),
+    label = trainTrain$target, 
+    missing = NaN)
+
+x_val <- xgb.DMatrix(
+    as.matrix(trainTest[,-2]), 
+    label = trainTest$target,
+    missing = NaN)
+x_test <- xgb.DMatrix(as.matrix(test), missing = NaN)
+
+
+model <- xgb.train(
+    data = x_train,
+    nrounds = 400, 
+    params = param,  
+    maximize = TRUE,
+    watchlist = list(val = x_val),
+    print_every_n = 10
+  )
+pred_3_e  <- predict(model, x_val)
+pred_3_t  <- predict(model, x_test)
+
+
+```
+
+```{r}
+bet <- Gini(pred_3_e, trainTest$target)
+bet1 = auc * 2 -1
+```
+
+While we have achieved our goal of improving upon basic by getting an gini coefficient of `r bet` while our basic logistic regression had a gini of `r bet1`. While this is an improvement, the winning result was 0.29698. While a `r bet - bet1` improvement might not be impressive but considering that the difference between `r 0.29698 - bet` any improvement over baseline is impressive. For example, using basic xgboost over logistic regression gives a `r round((bet - bet1) / bet1* 100, 2)`% increase in gini (not to be confused with accuracy *per se*). 
+
+After 100 iterations we only have a 0.616 compared to the value from the simple logistic regression. 
+
+* Check conditions
+
+```{r}
+qqnorm(mod$residuals)
+qqline(mod$residuals)
+```
+
+Wooo, That did not pass the test, however, since we used a logistic regression, this cannot be expected. In fact, it almost looks like a logistic regression which is comforting. 
+
+
+* Theoretical inference (if possible) - hypothesis test and confidence interval
+
+Theoretical inference is possible based on the results from the logistic regression, however, in order to maintain privacy, the competition did not give variable names that correspond to real world attributes. As such, while there are CIs, we don't actually know what they correspond too. 
+
+
+* Brief description of methodology that reflects your conceptual understanding
+
+We performed two tests, one which was a logistic regression and the other was boosted tree algorithm. The results were compared  by using the gini coefficient on a test set. 
+## Conclusion: 
+
+While the ML algorithm had a better gini score, it was much more expensive to compute and did not leave any options for intelligibility. Also, considering how close the logistic regression was to the winning kaggle gini score, it does not appear that policy makers should be concerned with using an inferior algorithm. However, since the company only cares about prediction, it should use the most cutting edge algorithm such as a CNN or XGBoost.
